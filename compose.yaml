@@ -1,0 +1,6 @@
+﻿services:
+  raidmonitor:
+    image: raidmonitor
+    build:
+      context: .
+      dockerfile: RaidMonitor/Dockerfile

@@ -1,13 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using RaidMonitor.Application.Abstractions.Data.Repositories;
+using RaidMonitor.Core.Entities;
+using RaidMonitor.Data.Extensions;
 
 namespace RaidMonitor.Data.Repositories;
 
-public class UserRepository(ApplicationDbContext context) : IUserRepository
+public class UserRepository(ApplicationContext context) : IUserRepository
 {
-    public Task<List<string>> GetUserEmailsAsync(CancellationToken cancellationToken)
+    public Task<List<User>> GetUsersAsync(CancellationToken cancellationToken)
         => context.Users
-            .Where(x => !string.IsNullOrWhiteSpace(x.Email))
-            .Select(x => x.Email!)
+            .Select(x => x.ToUser())
             .ToListAsync(cancellationToken);
 }

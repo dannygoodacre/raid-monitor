@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RaidMonitor.Application.Services;
-using RaidMonitor.Configuration;
 using RaidMonitor.Configuration.Options;
 using RaidMonitor.Core.Common;
 
@@ -15,8 +14,6 @@ internal sealed class ValidateRaidStatusHandler(ILogger<ValidateRaidStatusHandle
 
     protected override async Task<Result<List<string>>> InternalExecuteAsync(ValidateRaidStatusQuery command, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Command '{Command}' started.", QueryName);
-
         var fileContent = await fileService.ReadMdstatAsync(cancellationToken);
 
         var blocks = fileContent
@@ -39,14 +36,16 @@ internal sealed class ValidateRaidStatusHandler(ILogger<ValidateRaidStatusHandle
             .Select(s => s.Trim())
             .ToList();
 
-        var badBlocks = blocks.Where(block => options.Value.Keywords.Any(block.Contains)).ToList();
+        var badArrays = blocks.Where(block => options.Value.Keywords.Any(block.Contains)).ToList();
 
-        if (badBlocks.Any())
+        if (!badArrays.Any())
         {
-            logger.LogInformation("Command '{Command}' found '{Count}' bad block: {BadBlocks}.", QueryName, badBlocks.Count, string.Join(Environment.NewLine, badBlocks));
+            return Result<List<string>>.Success([]);
         }
 
-        return Result<List<string>>.Success(badBlocks);
+        logger.LogInformation("Command '{Command}' found '{Count}' bad arrays: {BadArrays}.", QueryName, badArrays.Count, string.Join(Environment.NewLine, badArrays));
+
+        return Result<List<string>>.Success(badArrays);
     }
 
     public Task<Result<List<string>>> ExecuteAsync(CancellationToken cancellationToken) => base.ExecuteAsync(new ValidateRaidStatusQuery(), cancellationToken);

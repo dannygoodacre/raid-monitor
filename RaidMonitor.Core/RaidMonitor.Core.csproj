@@ -6,4 +6,10 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Reference Include="Microsoft.Extensions.Identity.Stores">
+        <HintPath>..\..\..\..\..\usr\lib64\dotnet\shared\Microsoft.AspNetCore.App\10.0.0\Microsoft.Extensions.Identity.Stores.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

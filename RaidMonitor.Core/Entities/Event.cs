@@ -9,4 +9,6 @@ public class Event
     public required string Message { get; set; }
 
     public required bool IsAcknowledged { get; set; }
+
+    public ICollection<User> UsersSendTo { get; set; } = [];
 }

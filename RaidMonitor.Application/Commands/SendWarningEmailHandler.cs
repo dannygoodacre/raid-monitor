@@ -1,17 +1,20 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RaidMonitor.Core.Common;
 using RaidMonitor.Core.Entities;
 using RaidMonitor.Application.Abstractions.Data;
 using RaidMonitor.Application.Abstractions.Data.Repositories;
 using RaidMonitor.Application.Abstractions.Services;
+using RaidMonitor.Configuration.Options;
 
 namespace RaidMonitor.Application.Commands;
 
 internal sealed class SendWarningEmailHandler(ILogger<SendWarningEmailHandler> logger,
+                                              IOptions<EmailOptions> options,
                                               IEmailService emailService,
                                               IUserRepository userRepository,
                                               IEventRepository eventRepository,
-                                              IApplicationDbContext context) : CommandHandler<SendWarningEmailCommand>(logger), ISendWarningEmail
+                                              IApplicationContext context) : CommandHandler<SendWarningEmailCommand>(logger), ISendWarningEmail
 {
     protected override string CommandName => "Send Warning Email";
 
@@ -19,22 +22,36 @@ internal sealed class SendWarningEmailHandler(ILogger<SendWarningEmailHandler> l
     {
         logger.LogInformation("Command '{Command}' started.", CommandName);
 
-        var userEmails = await userRepository.GetUserEmailsAsync(cancellationToken);
+        var blocksHtml = string.Join("<br>", command.BadArrays.Select(b => $"<pre><code>{b}</code></pre>"));
 
-        var blocksHtml = string.Join("<br>", command.BadBlocks.Select(b => $"<pre><code>{b}</code></pre>"));
+        var message = $"Issues found in {command.BadArrays.Count} arrays:<br>{blocksHtml}";
 
-        var message = $"Errors found in {command.BadBlocks.Count} RAIDs:<br>{blocksHtml}";
+        List<string> emails;
 
-        foreach (var email in userEmails)
+        var users = await userRepository.GetUsersAsync(cancellationToken);
+
+        if (users.Count == 0)
         {
-            await emailService.SendEmailAsync(email, "RAID ISSUE DETECTED", message);
+            logger.LogWarning("Command '{Command}' found no users to contact; using backup email '{BackupEmail}' instead.", CommandName, options.Value.BackupEmail);
+
+            emails = [ options.Value.BackupEmail ];
+        }
+        else
+        {
+            emails = users.Select(x => x.Email).ToList();
+        }
+
+        foreach (var email in emails)
+        {
+            await emailService.SendEmailAsync(email, options.Value.Subject, message);
         }
 
         eventRepository.Add(new Event
         {
             CapturedAt = DateTime.UtcNow,
             Message = message,
-            IsAcknowledged = false
+            IsAcknowledged = false,
+            UsersSendTo = users
         });
 
         const int expectedChanges = 1;
@@ -46,24 +63,24 @@ internal sealed class SendWarningEmailHandler(ILogger<SendWarningEmailHandler> l
             logger.LogWarning("Command '{Command}' wrote an unexpected number of changes to the database: expected '{Expected}', actual '{Actual}'.", CommandName, expectedChanges, actualChanges);
         }
 
-        logger.LogInformation("Command '{Command}' completed, sending an email to: {Recipients}.", CommandName, string.Join(", ", userEmails));
+        logger.LogInformation("Command '{Command}' completed, sending an email to: {Recipients}.", CommandName, string.Join(", ", emails));
 
         return Result.Success();
     }
 
-    public Task<Result> ExecuteAsync(List<string> badBlocks, CancellationToken cancellationToken = default)
-        => base.ExecuteAsync(new SendWarningEmailCommand()
+    public Task<Result> ExecuteAsync(List<string> badArrays, CancellationToken cancellationToken)
+        => base.ExecuteAsync(new SendWarningEmailCommand
         {
-            BadBlocks = badBlocks
+            BadArrays = badArrays
         }, cancellationToken);
 }
 
 public class SendWarningEmailCommand : ICommand
 {
-    public required List<string> BadBlocks { get; init; }
+    public required List<string> BadArrays { get; init; }
 }
 
 public interface ISendWarningEmail
 {
-    Task<Result> ExecuteAsync(List<string> badBlocks, CancellationToken cancellationToken = default);
+    Task<Result> ExecuteAsync(List<string> badArrays, CancellationToken cancellationToken = default);
 }

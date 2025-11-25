@@ -15,14 +15,14 @@ public class Program
         builder.Configuration
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-            .AddUserSecrets<Program>()
-            .AddEnvironmentVariables();
+            .AddUserSecrets<Program>();
 
         builder.Services.AddApplication();
         builder.Services.AddData(builder.Configuration);
         builder.Services.AddEmailServices(builder.Configuration);
         builder.Services.AddHostedServices();
         builder.Services.AddOptions(builder.Configuration);
+        builder.Services.AddRazorPages();
         builder.Services.AddWeb();
 
         var app = builder.Build();
@@ -49,7 +49,8 @@ public class Program
 
         using (var scope = app.Services.CreateScope())
         {
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+
             db.Database.Migrate();
         }
 
@@ -57,13 +58,18 @@ public class Program
 
         app.UseRouting();
 
-        app.UseEndpoints(x => x.MapControllers());
+        app.UseAuthentication();
 
         app.UseAuthorization();
 
         app.MapStaticAssets();
 
-        app.MapRazorPages().WithStaticAssets();
+        app.UseEndpoints(x =>
+        {
+            x.MapControllers();
+
+            x.MapRazorPages().WithStaticAssets();
+        });
 
         app.Run();
     }

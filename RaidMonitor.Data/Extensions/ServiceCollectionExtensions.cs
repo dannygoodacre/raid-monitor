@@ -16,11 +16,11 @@ public static class ServiceCollectionExtensions
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         services
-            .AddDbContext<ApplicationDbContext>(x => x.UseSqlite(connectionString))
+            .AddDbContext<ApplicationContext>(x => x.UseSqlite(connectionString))
             .AddDefaultIdentity<IdentityUser>(x => x.SignIn.RequireConfirmedAccount = true)
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+            .AddEntityFrameworkStores<ApplicationContext>();
 
-        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+        services.AddScoped<IApplicationContext>(provider => provider.GetRequiredService<ApplicationContext>());
 
         services.AddScoped<IUserRepository, UserRepository>();
 

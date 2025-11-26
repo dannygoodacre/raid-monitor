@@ -18,11 +18,11 @@ public class RaidStatusMonitorService(ILogger<RaidStatusMonitorService> logger,
         {
             using var scope = scopeFactory.CreateScope();
 
-            var validateRaidStatus = scope.ServiceProvider.GetRequiredService<IValidateRaidStatus>();
+            var getStatus = scope.ServiceProvider.GetRequiredService<IGetRaidStatus>();
 
-            var validationResult = await validateRaidStatus.ExecuteAsync(cancellationToken);
+            var getStatusResult = await getStatus.ExecuteAsync(cancellationToken);
 
-            if (!validationResult.IsSuccess)
+            if (!getStatusResult.IsSuccess)
             {
                 logger.LogError("Service '{Service}' could not validate the state of the system RAIDs.", ServiceName);
 
@@ -31,7 +31,7 @@ public class RaidStatusMonitorService(ILogger<RaidStatusMonitorService> logger,
                 continue;
             }
 
-            if (validationResult.Value.Count == 0)
+            if (getStatusResult.Value.Count == 0)
             {
                 await Task.Delay(TimeSpan.FromSeconds(options.Value.DelayInSeconds), cancellationToken);
 
@@ -40,7 +40,7 @@ public class RaidStatusMonitorService(ILogger<RaidStatusMonitorService> logger,
 
             var sendWarningEmail = scope.ServiceProvider.GetRequiredService<ISendWarningEmail>();
 
-            var sendResult = await sendWarningEmail.ExecuteAsync(validationResult.Value, cancellationToken);
+            var sendResult = await sendWarningEmail.ExecuteAsync(getStatusResult.Value, cancellationToken);
 
             if (!sendResult.IsSuccess)
             {

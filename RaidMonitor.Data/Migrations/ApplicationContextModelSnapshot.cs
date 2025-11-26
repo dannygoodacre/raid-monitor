@@ -303,13 +303,13 @@ namespace RaidMonitor.Data.Migrations
             modelBuilder.Entity("RaidMonitor.Core.Entities.User", b =>
                 {
                     b.HasOne("RaidMonitor.Core.Entities.Event", null)
-                        .WithMany("UsersSendTo")
+                        .WithMany("UsersSentTo")
                         .HasForeignKey("EventId");
                 });
 
             modelBuilder.Entity("RaidMonitor.Core.Entities.Event", b =>
                 {
-                    b.Navigation("UsersSendTo");
+                    b.Navigation("UsersSentTo");
                 });
 #pragma warning restore 612, 618
         }

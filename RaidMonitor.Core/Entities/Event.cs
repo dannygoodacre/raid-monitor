@@ -10,5 +10,5 @@ public class Event
 
     public required bool IsAcknowledged { get; set; }
 
-    public ICollection<User> UsersSendTo { get; set; } = [];
+    public ICollection<User> UsersSentTo { get; set; } = [];
 }

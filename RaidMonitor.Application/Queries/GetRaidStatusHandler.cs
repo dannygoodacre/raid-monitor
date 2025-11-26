@@ -6,15 +6,15 @@ using RaidMonitor.Core.Common;
 
 namespace RaidMonitor.Application.Queries;
 
-internal sealed class ValidateRaidStatusHandler(ILogger<ValidateRaidStatusHandler> logger,
-                                                IOptions<RaidIssueOptions> options,
-                                                IFileService fileService) : QueryHandler<ValidateRaidStatusQuery, List<string>>(logger), IValidateRaidStatus
+internal sealed class GetRaidStatusHandler(ILogger<GetRaidStatusHandler> logger,
+                                           IOptions<RaidIssueOptions> options,
+                                           IFileService fileService) : QueryHandler<GetRaidStatusQuery, List<string>>(logger), IGetRaidStatus
 {
-    protected override string QueryName => "Validate RAID Status";
+    protected override string QueryName => "Get RAID Status";
 
-    protected override async Task<Result<List<string>>> InternalExecuteAsync(ValidateRaidStatusQuery command, CancellationToken cancellationToken)
+    protected override async Task<Result<List<string>>> InternalExecuteAsync(GetRaidStatusQuery command, CancellationToken cancellationToken)
     {
-        var fileContent = await fileService.ReadMdstatAsync(cancellationToken);
+        var fileContent = await fileService.ReadProcMdstatAsync(cancellationToken);
 
         var blocks = fileContent
             .SkipWhile(l => l.StartsWith("Personalities"))
@@ -43,19 +43,19 @@ internal sealed class ValidateRaidStatusHandler(ILogger<ValidateRaidStatusHandle
             return Result<List<string>>.Success([]);
         }
 
-        logger.LogInformation("Command '{Command}' found '{Count}' bad arrays: {BadArrays}.", QueryName, badArrays.Count, string.Join(Environment.NewLine, badArrays));
+        logger.LogInformation("Query '{Query}' found '{Count}' bad arrays: {BadArrays}", QueryName, badArrays.Count, Environment.NewLine + string.Join(Environment.NewLine, badArrays));
 
         return Result<List<string>>.Success(badArrays);
     }
 
-    public Task<Result<List<string>>> ExecuteAsync(CancellationToken cancellationToken) => base.ExecuteAsync(new ValidateRaidStatusQuery(), cancellationToken);
+    public Task<Result<List<string>>> ExecuteAsync(CancellationToken cancellationToken) => base.ExecuteAsync(new GetRaidStatusQuery(), cancellationToken);
 }
 
-public class ValidateRaidStatusQuery : IQuery
+public class GetRaidStatusQuery : IQuery
 {
 }
 
-public interface IValidateRaidStatus
+public interface IGetRaidStatus
 {
     public Task<Result<List<string>>> ExecuteAsync(CancellationToken cancellationToken = default);
 }

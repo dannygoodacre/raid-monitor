@@ -11,7 +11,7 @@ using RaidMonitor.Data;
 namespace RaidMonitor.Data.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20251125220555_InitialCreate")]
+    [Migration("20251126223747_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -306,13 +306,13 @@ namespace RaidMonitor.Data.Migrations
             modelBuilder.Entity("RaidMonitor.Core.Entities.User", b =>
                 {
                     b.HasOne("RaidMonitor.Core.Entities.Event", null)
-                        .WithMany("UsersSendTo")
+                        .WithMany("UsersSentTo")
                         .HasForeignKey("EventId");
                 });
 
             modelBuilder.Entity("RaidMonitor.Core.Entities.Event", b =>
                 {
-                    b.Navigation("UsersSendTo");
+                    b.Navigation("UsersSentTo");
                 });
 #pragma warning restore 612, 618
         }

@@ -51,7 +51,7 @@ internal sealed class SendWarningEmailHandler(ILogger<SendWarningEmailHandler> l
             CapturedAt = DateTime.UtcNow,
             Message = message,
             IsAcknowledged = false,
-            UsersSendTo = users
+            UsersSentTo = users
         });
 
         const int expectedChanges = 1;

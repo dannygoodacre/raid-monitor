@@ -22,4 +22,9 @@
       <Reference Include="Microsoft.Extensions.Logging.Abstractions" />
     </ItemGroup>
 
+    <ItemGroup>
+        <InternalsVisibleTo Include="RaidMonitor.Application.Tests"/>
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+    </ItemGroup>
+
 </Project>

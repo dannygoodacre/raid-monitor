@@ -12,8 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\RaidMonitor.Application\RaidMonitor.Application.csproj" />
-      <ProjectReference Include="..\..\RaidMonitor.Tests.Common\RaidMonitor.Tests.Common.csproj" />
+      <ProjectReference Include="..\..\RaidMonitor.Core\RaidMonitor.Core.csproj" />
       <ProjectReference Include="..\RaidMonitor.Tests.Common\RaidMonitor.Tests.Common.csproj" />
     </ItemGroup>
 

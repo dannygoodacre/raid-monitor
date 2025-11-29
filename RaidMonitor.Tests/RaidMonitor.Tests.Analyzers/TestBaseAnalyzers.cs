@@ -42,13 +42,11 @@ public class TestBaseAnalyzer : DiagnosticAnalyzer
 
         if (!symbol.GetAttributes().Any(x => x.AttributeClass?.Name == "TestFixtureAttribute"))
         {
-            // Does not have TestFixture attribute.
             return;
         }
 
-        if (symbol.BaseType?.ToDisplayString() is "FileHub.Tests.Common.TestBase")
+        if (symbol.BaseType?.ToDisplayString() is "RaidMonitor.Tests.Common.TestBase")
         {
-            // Inherits from TestBase.
             return;
         }
 

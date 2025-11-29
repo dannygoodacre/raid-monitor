@@ -45,7 +45,6 @@ public class MockMustBeStrictAnalyzer : DiagnosticAnalyzer
 
         if (arguments is null || arguments.Count == 0)
         {
-            // Defaults to MockBehavior.Loose.
             Report(context, objectCreation, typeSymbol.TypeArguments[0]);
             return;
         }
@@ -68,7 +67,6 @@ public class MockMustBeStrictAnalyzer : DiagnosticAnalyzer
                 continue;
             }
 
-            // 0 == MockBehavior.Strict.
             return;
         }
 

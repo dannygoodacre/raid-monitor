@@ -1,4 +1,4 @@
-using RaidMonitor.Core.Entities;
+using RaidMonitor.Core.Models;
 
 namespace RaidMonitor.Application.Abstractions.Data.Repositories;
 

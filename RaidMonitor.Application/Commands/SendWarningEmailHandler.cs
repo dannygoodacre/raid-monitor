@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RaidMonitor.Core.Common;
-using RaidMonitor.Core.Entities;
 using RaidMonitor.Application.Abstractions.Data;
 using RaidMonitor.Application.Abstractions.Data.Repositories;
 using RaidMonitor.Application.Abstractions.Services;
 using RaidMonitor.Configuration.Options;
+using RaidMonitor.Core.Models;
 
 namespace RaidMonitor.Application.Commands;
 
@@ -28,7 +28,7 @@ internal sealed class SendWarningEmailHandler(ILogger<SendWarningEmailHandler> l
 
         List<string> emails;
 
-        var users = await userRepository.GetUsersAsync(cancellationToken);
+        var users = await userRepository.GetAllAsync(cancellationToken);
 
         if (users.Count == 0)
         {
@@ -46,12 +46,13 @@ internal sealed class SendWarningEmailHandler(ILogger<SendWarningEmailHandler> l
             await emailService.SendEmailAsync(email, options.Value.Subject, message);
         }
 
+        var foo = users.Select(x => x.Id).ToList();
+
         eventRepository.Add(new Event
         {
-            CapturedAt = DateTime.UtcNow,
+            LoggedAt = DateTime.UtcNow,
             Message = message,
-            IsAcknowledged = false,
-            UsersSentTo = users
+            UsersNotifiedIds = users.Select(x => x.Id).ToList(),
         });
 
         const int expectedChanges = 1;

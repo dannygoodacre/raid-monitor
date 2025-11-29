@@ -8,7 +8,7 @@ using RaidMonitor.Application.Abstractions.Services;
 using RaidMonitor.Application.Commands;
 using RaidMonitor.Configuration.Options;
 using RaidMonitor.Core.Common;
-using RaidMonitor.Core.Entities;
+using RaidMonitor.Core.Models;
 using RaidMonitor.Tests.Common;
 
 namespace RaidMonitor.Application.Tests.Commands;
@@ -104,12 +104,12 @@ public class SendWarningEmailHandlerTests : TestBase
         [
             new User
             {
-                Id = "123",
+                Id = 123,
                 Email = _testRecipients[0]
             },
             new User
             {
-                Id = "123",
+                Id = 456,
                 Email = _testRecipients[1]
             }
         ];
@@ -135,10 +135,9 @@ public class SendWarningEmailHandlerTests : TestBase
 
         _eventRepositoryMock
             .Setup(x => x.Add(
-                It.Is<Event>(y => _timeBeforeTest <= y.CapturedAt && y.CapturedAt <= DateTime.UtcNow
+                It.Is<Event>(y => _timeBeforeTest <= y.LoggedAt && y.LoggedAt <= DateTime.UtcNow
                              && y.Message == _testMessage
-                             && y.IsAcknowledged == false
-                             && y.UsersSentTo.Count == 0)))
+                             && y.UsersNotifiedIds.Count == 0)))
             .Verifiable(Times.Once);
 
         Setup_Context_SaveChangesAsync();
@@ -206,10 +205,9 @@ public class SendWarningEmailHandlerTests : TestBase
     {
         _eventRepositoryMock
             .Setup(x => x.Add(
-                It.Is<Event>(y => _timeBeforeTest <= y.CapturedAt && y.CapturedAt <= DateTime.UtcNow
+                It.Is<Event>(y => _timeBeforeTest <= y.LoggedAt && y.LoggedAt <= DateTime.UtcNow
                                   && y.Message == _testMessage
-                                  && y.IsAcknowledged == false
-                                  && y.UsersSentTo == _testUsers)))
+                                  && y.UsersNotifiedIds.SequenceEqual(_testUsers.Select(z => z.Id)))))
             .Verifiable(Times.Once);
     }
 
@@ -239,7 +237,7 @@ public class SendWarningEmailHandlerTests : TestBase
     private void Setup_UserRepository_GetUsersAsync()
     {
         _userRepositoryMock
-            .Setup(x => x.GetUsersAsync(
+            .Setup(x => x.GetAllAsync(
                 It.Is<CancellationToken>(y => y == _cancellationToken)))
             .ReturnsAsync(_testUsers)
             .Verifiable(Times.Once);
